@@ -1,5 +1,7 @@
 #include "wut_socket.h"
 
+int h_errno;
+
 static devoptab_t
 __wut_socket_devoptab =
 {
