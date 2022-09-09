@@ -18,13 +18,16 @@ namespace nn {
 namespace nfp {
 
 enum ErrorDescription { // nn::Result::GetDescription
-   INVALID_STATE           = 0x6400,
-   INVALID_PARAM           = 0x3780,
-   NO_REGISTER_INFO        = 0x0900,
-   APP_AREA_TAGID_MISMATCH = 0x1d00,
-   NO_BACKUPENTRY          = 0xe580,
-   INVALID_ALIGNMENT       = 0x3800,
-   NO_BACKUP_SAVEDATA      = 0x8880,
+   INVALID_STATE           = 0x06400,
+   INVALID_PARAM           = 0x03780,
+   NO_REGISTER_INFO        = 0x10900,
+   APP_AREA_TAGID_MISMATCH = 0x11d00,
+   NO_BACKUPENTRY          = 0x0e580,
+   INVALID_ALIGNMENT       = 0x03800,
+   NO_BACKUP_SAVEDATA      = 0x38880,
+   APP_AREA_ALREADY_EXISTS = 0x10e00,
+   APP_AREA_ID_MISMATCH    = 0x11300,
+   NO_APP_AREA             = 0x10400,
 };
 
 enum class NfpState : uint32_t
@@ -39,12 +42,21 @@ enum class NfpState : uint32_t
    MountedROM     = 7,
 };
 
+struct Date
+{
+   uint16_t year;
+   uint8_t month;
+   uint8_t day;
+};
+WUT_CHECK_SIZE(Date, 0x4);
+
 struct WUT_PACKED ApplicationAreaCreateInfo
 {
    uint32_t id;
    void* data;
    uint32_t size;
-   WUT_PADDING_BYTES(0x30); // reserved
+   //! reserved bytes, must be set to 0
+   uint8_t reserved[0x30];
 };
 WUT_CHECK_SIZE(ApplicationAreaCreateInfo, 0x3C);
 
@@ -58,27 +70,25 @@ WUT_CHECK_SIZE(TagId, 0xB);
 struct WUT_PACKED TagInfo
 {
    TagId id;
-   WUT_PADDING_BYTES(0x15); // reserved
+   uint8_t reserved0[0x15]; // reserved
    uint8_t protocol;
    uint8_t tag_type;
-   WUT_PADDING_BYTES(0x32); // reserved
+   uint8_t reserved1[0x32]; // reserved
 };
 WUT_CHECK_SIZE(TagInfo, 0x54);
 
 struct WUT_PACKED CommonInfo
 {
-   uint16_t last_write_year;
-   uint8_t last_write_month;
-   uint8_t last_write_day;
+   Date last_write_date;
    uint16_t write_counter;
    uint16_t game_character_id;
    uint8_t character_variant;
    uint8_t series;
    uint16_t model_number;
    uint8_t figure_type;
-   WUT_UNKNOWN_BYTES(0x1);
+   uint8_t unk;
    uint16_t application_area_size;
-   WUT_PADDING_BYTES(0x30); // reserved
+   uint8_t reserved[0x30]; // reserved
 };
 WUT_CHECK_SIZE(CommonInfo, 0x40);
 
@@ -86,11 +96,10 @@ struct WUT_PACKED RegisterInfo
 {
    FFLStoreData mii;
    uint16_t amiibo_name[11];
-   WUT_UNKNOWN_BYTES(2);
-   uint16_t first_write_year;
-   uint8_t first_write_month;
-   uint8_t first_write_day;
-   WUT_PADDING_BYTES(0x2c); // reserved
+   uint8_t flags;
+   uint8_t country_code;
+   Date first_write_date;
+   uint8_t reserved[0x2c]; // reserved
 };
 WUT_CHECK_SIZE(RegisterInfo, 0xA8);
 
@@ -101,7 +110,7 @@ struct WUT_PACKED ReadOnlyInfo
    uint8_t series;
    uint16_t model_number;
    uint8_t figure_type;
-   WUT_PADDING_BYTES(0x2f); // reserved
+   uint8_t reserved[0x2f]; // reserved
 };
 WUT_CHECK_SIZE(ReadOnlyInfo, 0x36);
 
@@ -114,10 +123,23 @@ struct WUT_PACKED RegisterInfoSet
 {
    FFLStoreData mii;
    uint16_t amiibo_name[11];
-   uint8_t unknown1;
-   WUT_PADDING_BYTES(0x2d); // reserved
+   uint8_t flags;
+   //! reserved bytes, must be 0
+   uint8_t reserved[0x2d];
 };
 WUT_CHECK_SIZE(RegisterInfoSet, 0xA4);
+
+struct WUT_PACKED AdminInfo
+{
+   uint64_t titleId;
+   uint32_t appAreaId;
+   uint16_t updateCount;
+   uint8_t flags;
+   uint8_t version;
+   uint8_t platform;
+   uint8_t reserved[0x2f]; // reserved
+};
+WUT_CHECK_SIZE(AdminInfo, 0x40);
 
 NfpState
 GetNfpState()
