@@ -59,6 +59,7 @@ struct WUT_PACKED ApplicationAreaCreateInfo
    uint8_t reserved[0x30];
 };
 WUT_CHECK_SIZE(ApplicationAreaCreateInfo, 0x3C);
+// TODO offset checks
 
 struct WUT_PACKED TagId
 {
@@ -170,7 +171,7 @@ StartDetection()
    asm("StartDetection__Q2_2nn3nfpFv");
 
 nn::Result
-StopDetection(void)
+StopDetection()
    asm("StopDetection__Q2_2nn3nfpFv");
 
 nn::Result
@@ -190,7 +191,7 @@ Flush()
    asm("Flush__Q2_2nn3nfpFv");
 
 nn::Result
-Unmount(void)
+Unmount()
    asm("Unmount__Q2_2nn3nfpFv");
 
 bool
