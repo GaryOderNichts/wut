@@ -41,8 +41,7 @@ IRCInit(VPADChan channel,
    return TRUE;
 }
 
-IRCResult
-IRCConnect(VPADChan channel,
+IRCResult   IRCConnect(VPADChan channel,
            uint16_t timeout,
            CCRCDCIrdaConnectionType type,
            CCRCDCIrdaBitrate bitrate,
